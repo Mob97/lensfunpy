@@ -1,7 +1,9 @@
 lensfunpy
 =========
 
-lensfunpy is an easy-to-use Python wrapper for the lensfun_ library.
+A fork of lensfunpy that compatible with lensfun v0.3.4 and supports database v2.
+
+lensfunpy is an easy-to-use Python wrapper for the lensfun library (v0.3.4).
 
 `API Documentation <https://letmaik.github.io/lensfunpy/api/>`_
 
@@ -49,8 +51,9 @@ How to correct lens distortion
     img = cv2.imread(image_path)
     height, width = img.shape[0], img.shape[1]
 
-    mod = lensfunpy.Modifier(lens, cam.crop_factor, width, height)
-    mod.initialize(focal_length, aperture, distance, pixel_format=img.dtype)
+    mod = lensfunpy.Modifier(lens, cam.crop_factor, width, height, focal_length)
+    mod.enable_corrections(aperture=aperture, distance=distance, scale=0.0, flags=lensfunpy.ModifyFlags.VIGNETTING | lensfunpy.ModifyFlags.TCA)
+    
 
     undist_coords = mod.apply_geometry_distortion()
     img_undistorted = cv2.remap(img, undist_coords, None, cv2.INTER_LANCZOS4)
@@ -84,8 +87,8 @@ gamma corrected.
     width = img.shape[1]
     height = img.shape[0]
 
-    mod = lensfunpy.Modifier(lens, cam.crop_factor, width, height)
-    mod.initialize(focal_length, aperture, distance, pixel_format=img.dtype)
+    mod = lensfunpy.Modifier(lens, cam.crop_factor, width, height, focal_length)
+    mod.enable_corrections(aperture=aperture, distance=distance, scale=0.0, flags=lensfunpy.ModifyFlags.VIGNETTING | lensfunpy.ModifyFlags.TCA)
 
     did_apply = mod.apply_color_modification(img)
     if did_apply:
@@ -120,8 +123,8 @@ TCA correction.
     width = img.shape[1]
     height = img.shape[0]
 
-    mod = lensfunpy.Modifier(lens, cam.crop_factor, width, height)
-    mod.initialize(focal_length, aperture, distance, pixel_format=img.dtype, flags=lensfunpy.ModifyFlags.VIGNETTING | lensfunpy.ModifyFlags.TCA)
+    mod = lensfunpy.Modifier(lens, cam.crop_factor, width, height, focal_length)
+    mod.enable_corrections(aperture=aperture, distance=distance, scale=0.0, flags=lensfunpy.ModifyFlags.VIGNETTING | lensfunpy.ModifyFlags.TCA)
 
     # Vignette Correction
     mod.apply_color_modification(img)
@@ -153,19 +156,16 @@ then follow the steps in this section to build lensfunpy from source.
 
 First, install the lensfun_ library on your system.
 
-On Ubuntu, you can get (an outdated) version with:
-
-.. code-block:: sh
-
-    sudo apt-get install liblensfun-dev
-    
-Or install the latest developer version from the Git repository:
+On Ubuntu, install the lensfun v0.3.4 from the Git repository:
 
 .. code-block:: sh
 
     git clone https://github.com/lensfun/lensfun
     cd lensfun
-    cmake .
+    git checkout tags/v0.3.4
+    mkdir build
+    cd build
+    cmake ..
     sudo make install
     
 After that, install lensfunpy using:
